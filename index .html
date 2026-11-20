@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>UPARENA</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;700;800&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080910;--p:#8B5CF6;--s:#6366F1;--a:#22D3EE;--ok:#22C55E;--g:rgba(255,255,255,.05);--b:rgba(255,255,255,.1);--tx:#EEF0FF;--mu:#8D90B0;--gold:#FBBF24;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);font:500 14px Manrope,system-ui,sans-serif;overflow:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(600px 420px at 8% -5%,rgba(139,92,246,.3),transparent),radial-gradient(500px 420px at 100% 35%,rgba(34,211,238,.13),transparent),radial-gradient(520px 520px at 40% 112%,rgba(99,102,241,.22),transparent)}
+h1,h2,h3,.fx{font-family:'Exo 2',sans-serif}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:-4px}
+.i.st{fill:var(--gold);stroke:none;width:15px;height:15px;margin-left:3px;vertical-align:-2px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+header{padding:calc(var(--sat) + 10px) 14px 6px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:2}
+.logo{display:flex;align-items:center;gap:8px;font:800 21px 'Exo 2';letter-spacing:.04em;background:linear-gradient(90deg,#fff,var(--a) 55%,var(--p));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo svg{flex:none}
+.glass{background:var(--g);border:1px solid var(--b);border-radius:18px;-webkit-backdrop-filter:blur(18px) saturate(140%);backdrop-filter:blur(18px) saturate(140%)}
+.bal{padding:7px 12px;border-radius:12px;font:700 14px 'Exo 2';white-space:nowrap}
+main{flex:1;overflow:auto;padding:6px 14px calc(var(--sab) + 96px)}
+nav{position:fixed;left:12px;right:12px;bottom:calc(var(--sab) + 10px);display:flex;padding:5px;gap:2px;z-index:5}
+nav button{flex:1;padding:8px 0 6px;border-radius:14px;color:var(--mu);font-size:10px;display:grid;gap:2px;justify-items:center;transition:.2s}
+nav button.on{color:#fff;background:rgba(139,92,246,.22);box-shadow:inset 0 0 0 1px rgba(139,92,246,.5),0 0 18px rgba(139,92,246,.25)}
+section>*+*{margin-top:12px}
+.card{padding:14px}.row{display:flex;align-items:center;gap:10px}.sp{justify-content:space-between}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{padding:12px 8px;text-align:center}.stat b{display:block;font:800 18px 'Exo 2';color:var(--a)}.stat small,.mu{color:var(--mu);font-size:12px}
+h2{font-size:15px;font-weight:700;margin:18px 2px 8px}
+.btn{padding:13px 18px;border-radius:14px;font:800 15px 'Exo 2';letter-spacing:.03em;background:linear-gradient(135deg,var(--p),var(--s));box-shadow:0 6px 24px rgba(139,92,246,.45);transition:transform .15s,box-shadow .2s;color:#fff}
+.btn:hover{box-shadow:0 8px 32px rgba(139,92,246,.7)}.btn:active{transform:scale(.96)}
+.btn.sm{padding:8px 14px;font-size:13px}.btn.gh{background:var(--g);box-shadow:none;border:1px solid var(--b)}.btn.ok{background:linear-gradient(135deg,#16a34a,var(--ok));box-shadow:0 6px 24px rgba(34,197,94,.35)}.btn.w{width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.hero{padding:20px;text-align:center}
+.hero b{display:block;font:800 38px 'Exo 2';margin:4px 0 14px;text-shadow:0 0 28px rgba(251,191,36,.35)}
+.hero b .i.st{width:28px;height:28px;margin-left:6px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px}
+.chip{padding:8px 14px;border-radius:12px;border:1px solid var(--b);background:var(--g);white-space:nowrap;font-weight:700;transition:.2s}
+.chip.on{border-color:var(--a);color:var(--a);box-shadow:0 0 14px rgba(34,211,238,.3)}
+.room{padding:12px;display:grid;gap:8px;transition:.2s}.room:hover{border-color:rgba(139,92,246,.6);box-shadow:0 0 22px rgba(139,92,246,.2)}
+.badge{padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;background:rgba(139,92,246,.2);color:#c4b5fd}
+.badge.g{background:rgba(34,197,94,.18);color:var(--ok)}.badge.c{background:rgba(34,211,238,.16);color:var(--a)}
+.av{border-radius:50%;overflow:hidden;flex:none;display:block}
+.li{display:flex;align-items:center;gap:10px;padding:9px 12px}.li+.li{border-top:1px solid var(--b)}.li .gr{flex:1;min-width:0}.li b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pos{color:var(--ok)}.neg{color:#f87171}
+input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b);background:var(--g);color:var(--tx);font:inherit;outline:0}input:focus{border-color:var(--a)}
+:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.gate{min-height:70vh;display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;padding:0 24px}
+#battle{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding:calc(var(--sat) + 10px) 14px calc(var(--sab) + 16px)}
+#battle>*+*{margin-top:10px}
+.bh{display:flex;align-items:center;gap:10px}.bh>div{flex:1}.ic{width:38px;height:38px;border-radius:12px;border:1px solid var(--b);background:var(--g);display:grid;place-items:center}
+.cvw{position:relative;width:min(100%,56vh);aspect-ratio:1;margin:0 auto;overflow:hidden}
+.cvw svg#arena{width:100%;height:100%;display:block}
+#ov{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none}
+#ov .t{font:800 22px 'Exo 2';text-shadow:0 0 24px var(--p);padding:0 20px}
+#ov .n{font:800 120px 'Exo 2';color:#fff;text-shadow:0 0 40px var(--a),0 0 80px var(--p);animation:pop 1s ease-out infinite}
+#ov .w{background:rgba(8,9,16,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:22px 26px;border-radius:20px;border:1px solid var(--a);box-shadow:0 0 40px rgba(34,211,238,.35);animation:pop .6s ease-out}
+@keyframes pop{0%{transform:scale(1.5);opacity:0}30%{opacity:1}100%{transform:scale(1)}}
+.dead{opacity:.4;text-decoration:line-through}
+#toast{position:fixed;left:50%;top:calc(var(--sat) + 60px);transform:translate(-50%,-20px);opacity:0;z-index:50;padding:10px 16px;border-radius:12px;background:rgba(20,22,40,.94);border:1px solid var(--p);transition:.3s;pointer-events:none;max-width:88%;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a3 3 0 0 0 4 3M16 6h4v1a3 3 0 0 1-4 3M12 13v4M8 21h8M10 17h4"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18l-6.5 4 1.7-7.4-5.7-5 7.5-.7z"/></symbol>
+</svg>
+<div id="app">
+  <header>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22D3EE"/><stop offset="1" stop-color="#8B5CF6"/></linearGradient></defs><path d="M12 1.5l9 5.2v10.6l-9 5.2-9-5.2V6.7z" fill="none" stroke="url(#lg)" stroke-width="1.8"/><path d="M13 6l-4 6h3l-1 6 4-6h-3z" fill="url(#lg)"/></svg>UPARENA</div>
+    <div class="bal glass" id="bal"></div>
+  </header>
+  <main id="view"></main>
+  <nav class="glass" id="nav"></nav>
+</div>
+<div id="battle" hidden></div>
+<div id="toast"></div>
+
+<script type="text/plain" id="src-functions">/* UPARENA — серверная часть (Firebase Cloud Functions v2, Node 20).
+   Сервер — единственный источник истины: баланс, ставки, старт и результат матча.
+   Деплой: firebase deploy --only functions,firestore:rules
+   Секреты: firebase functions:secrets:set BOT_TOKEN ; firebase functions:secrets:set WEBHOOK_SECRET */
+const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { defineSecret } = require('firebase-functions/params');
+const admin = require('firebase-admin');
+const crypto = require('crypto');
+
+admin.initializeApp();
+const db = admin.firestore(), FV = admin.firestore.FieldValue;
+const BOT = defineSecret('BOT_TOKEN'), HOOK = defineSecret('WEBHOOK_SECRET');
+const FEE = 0.05, STAKES = [10, 50, 100, 250, 500, 1000], MAXP = [2, 4, 6, 8, 10], DEPS = [50, 100, 250, 500, 1000];
+
+/* ---- Движок: должен совпадать с клиентским байт-в-байт по логике ---- */
+function mul(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+class Engine {
+  constructor(seed, n) {
+    this.rng = mul(seed); this.n = n; this.x = 500; this.y = 500; this.sp = 340; this.tick = 0; this.alive = Array(n).fill(true); this.hp = Array(n).fill(3); this.over = false; this.winner = -1; this.ev = [];
+    let a = this.rng() * 2 - 1, b = this.rng() * 2 - 1; if (Math.abs(a) + Math.abs(b) < .3) a = 1; this.dir(a, b);
+  }
+  dir(a, b) { const l = Math.sqrt(a * a + b * b); this.vx = a / l * this.sp; this.vy = b / l * this.sp; }
+  hit(p, x, y) {
+    const o = Math.min(this.n - 1, Math.floor(p / (4000 / this.n))); this.sp = Math.min(1100, this.sp * 1.05);
+    const k = (this.rng() - .5) * .14; this.dir(this.vx - k * this.vy, this.vy + k * this.vx);
+    const kill = this.alive[o] && --this.hp[o] <= 0; this.ev.push({ x, y, o, p: this.sp / 1100, kill });
+    if (kill) { this.alive[o] = false; if (this.alive.filter(Boolean).length <= 1) { this.over = true; this.winner = this.alive.indexOf(true); } }
+  }
+  step() {
+    if (this.over) return; this.tick++; const dt = 1 / 60, r = 16, W = 1000; this.x += this.vx * dt; this.y += this.vy * dt;
+    if (this.y < r) { this.y = r; this.vy = Math.abs(this.vy); this.hit(this.x, this.x, 0); }
+    if (this.x > W - r) { this.x = W - r; this.vx = -Math.abs(this.vx); this.hit(W + this.y, W, this.y); }
+    if (this.y > W - r) { this.y = W - r; this.vy = -Math.abs(this.vy); this.hit(2 * W + (W - this.x), this.x, W); }
+    if (this.x < r) { this.x = r; this.vx = Math.abs(this.vx); this.hit(3 * W + (W - this.y), 0, this.y); }
+  }
+}
+
+/* ---- Утилиты ---- */
+const fail = (c, m) => { throw new HttpsError(c, m); };
+const authed = r => r.auth ? r.auth.uid : fail('unauthenticated', 'Требуется вход');
+const wk = () => { const d = new Date(); d.setUTCHours(0, 0, 0, 0); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const y = d.getUTCFullYear(); return y + '-W' + Math.ceil(((d - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7); };
+const addTx = (t, uid, type, amount, room) => t.set(db.collection(`users/${uid}/tx`).doc(), { type, amount, room: room || null, ts: FV.serverTimestamp() });
+// Идемпотентность: повтор запроса с тем же rid возвращает прежний результат и не списывает дважды
+function idem(uid, rid, fn) {
+  if (typeof rid !== 'string' || rid.length < 8 || rid.length > 64 || rid.includes('/')) fail('invalid-argument', 'Нет идентификатора запроса');
+  const k = db.doc(`requests/${uid}_${rid}`);
+  return db.runTransaction(async t => { const s = await t.get(k); if (s.exists) return s.data().res; const res = await fn(t); t.set(k, { res, ts: FV.serverTimestamp() }); return res; });
+}
+function verify(init, token) {
+  const p = new URLSearchParams(init), h = p.get('hash'); p.delete('hash');
+  const s = [...p.entries()].map(([k, v]) => k + '=' + v).sort().join('\n');
+  const key = crypto.createHmac('sha256', 'WebAppData').update(token).digest(), c = crypto.createHmac('sha256', key).update(s).digest('hex');
+  if (!h || h.length !== c.length || !crypto.timingSafeEqual(Buffer.from(c), Buffer.from(h))) return null;
+  if (Date.now() / 1000 - Number(p.get('auth_date')) > 86400) return null;
+  try { return JSON.parse(p.get('user')); } catch (e) { return null; }
+}
+
+/* ---- Вход через Telegram ---- */
+exports.telegramAuth = onCall({ secrets: [BOT] }, async req => {
+  const u = verify(String(req.data.initData || ''), BOT.value()); if (!u) fail('unauthenticated', 'Неверная подпись Telegram');
+  const uid = 'tg' + u.id, ref = db.doc('users/' + uid), name = u.username ? '@' + u.username : (u.first_name || 'Игрок'), s = await ref.get();
+  if (!s.exists) await ref.create({ name, photo: u.photo_url || '', stars: 0, games: 0, wins: 0, losses: 0, earned: 0, createdAt: FV.serverTimestamp() }).catch(() => {});
+  else await ref.update({ name, photo: u.photo_url || '' });
+  return { token: await admin.auth().createCustomToken(uid) };
+});
+exports.serverTime = onCall(() => ({ t: Date.now() }));
+
+/* ---- Комнаты ---- */
+exports.createRoom = onCall(async req => {
+  const uid = authed(req), { stake, max, priv, rid } = req.data;
+  if (!STAKES.includes(stake) || !MAXP.includes(max)) fail('invalid-argument', 'Неверные параметры комнаты');
+  return idem(uid, rid, async t => {
+    const us = await t.get(db.doc('users/' + uid)), u = us.data(); if (!u || u.stars < stake) fail('failed-precondition', 'Недостаточно звёзд');
+    const id = crypto.randomBytes(3).toString('hex').toUpperCase();
+    t.create(db.doc('rooms/' + id), { creator: { uid, name: u.name }, stake, max, priv: !!priv, status: 'WAITING', players: [{ uid, name: u.name, photo: u.photo || '', ready: false }], playerUids: [uid], createdAt: FV.serverTimestamp() });
+    t.update(us.ref, { stars: FV.increment(-stake) }); addTx(t, uid, 'bet', -stake, id); return { id };
+  });
+});
+exports.joinRoom = onCall(async req => {
+  const uid = authed(req), id = String(req.data.room || '').toUpperCase();
+  if (!/^[A-Z0-9]{4,12}$/.test(id)) fail('invalid-argument', 'Неверный код комнаты');
+  return idem(uid, req.data.rid, async t => {
+    const rr = db.doc('rooms/' + id), [rs, us] = await Promise.all([t.get(rr), t.get(db.doc('users/' + uid))]);
+    if (!rs.exists) fail('not-found', 'Комната не найдена'); const r = rs.data(), u = us.data();
+    if (r.playerUids.includes(uid)) return { id };
+    if (r.status !== 'WAITING') fail('failed-precondition', 'Комната недоступна');
+    if (r.players.length >= r.max) fail('failed-precondition', 'Комната заполнена');
+    if (!u || u.stars < r.stake) fail('failed-precondition', 'Недостаточно звёзд');
+    t.update(rr, { players: FV.arrayUnion({ uid, name: u.name, photo: u.photo || '', ready: false }), playerUids: FV.arrayUnion(uid) });
+    t.update(us.ref, { stars: FV.increment(-r.stake) }); addTx(t, uid, 'bet', -r.stake, id); return { id };
+  });
+});
+exports.setReady = onCall(async req => {
+  const uid = authed(req);
+  return idem(uid, req.data.rid, async t => {
+    const rr = db.doc('rooms/' + String(req.data.room || '')), rs = await t.get(rr); if (!rs.exists) fail('not-found', 'Комната не найдена');
+    const r = rs.data(), i = r.players.findIndex(p => p.uid === uid);
+    if (r.status !== 'WAITING') fail('failed-precondition', 'Готовность изменить нельзя'); if (i < 0) fail('permission-denied', 'Вы не в этой комнате');
+    const players = r.players.map((p, j) => j === i ? { ...p, ready: !!req.data.ready } : p), upd = { players };
+    if (players.length === r.max && players.every(p => p.ready)) {
+      // Старт: сервер выбирает seed, заранее просчитывает исход и пишет его в закрытый документ
+      const seed = crypto.randomInt(1, 2147483647), e = new Engine(seed, r.max); while (!e.over && e.tick < 600000) e.step();
+      if (!e.over) fail('internal', 'Не удалось просчитать матч');
+      const startAt = Date.now() + 4500;
+      Object.assign(upd, { status: 'COUNTDOWN', seed, startAt, finishAt: startAt + Math.ceil(e.tick * 1000 / 60) });
+      t.set(rr.collection('secret').doc('result'), { winner: e.winner, ticks: e.tick });
+    }
+    t.update(rr, upd); return { ok: true };
+  });
+});
+exports.leaveRoom = onCall(async req => {
+  const uid = authed(req);
+  return idem(uid, req.data.rid, async t => {
+    const rr = db.doc('rooms/' + String(req.data.room || '')), rs = await t.get(rr); if (!rs.exists) return { ok: true };
+    const r = rs.data(); if (r.status !== 'WAITING') fail('failed-precondition', 'Матч уже начался'); if (!r.playerUids.includes(uid)) return { ok: true };
+    const players = r.players.filter(p => p.uid !== uid);
+    t.update(rr, { players, playerUids: FV.arrayRemove(uid), ...(players.length ? {} : { status: 'CANCELLED' }) });
+    t.update(db.doc('users/' + uid), { stars: FV.increment(r.stake) }); addTx(t, uid, 'refund', r.stake, rs.id); return { ok: true };
+  });
+});
+
+/* ---- Расчёт матча: победителя определяет только сервер ---- */
+async function settle(id) {
+  return db.runTransaction(async t => {
+    const rr = db.doc('rooms/' + id), rs = await t.get(rr); if (!rs.exists) return { ok: false };
+    const r = rs.data(); if (r.status === 'FINISHED') return { ok: true }; if (r.status !== 'COUNTDOWN') return { ok: false };
+    if (Date.now() < r.finishAt) return { early: true };
+    const sec = await t.get(rr.collection('secret').doc('result')), w = sec.data().winner;
+    const lbs = await Promise.all(r.players.map(p => t.get(db.doc('leaderboard/' + p.uid))));
+    const pool = r.stake * r.max, prize = Math.floor(pool * (1 - FEE)), k = wk();
+    r.players.forEach((p, i) => {
+      const win = i === w, net = win ? prize - r.stake : -r.stake, old = lbs[i].data() || {}, same = old.weekKey === k;
+      t.update(db.doc('users/' + p.uid), { games: FV.increment(1), wins: FV.increment(win ? 1 : 0), losses: FV.increment(win ? 0 : 1), earned: FV.increment(net), ...(win ? { stars: FV.increment(prize) } : {}) });
+      if (win) addTx(t, p.uid, 'win', prize, id);
+      t.set(db.doc('leaderboard/' + p.uid), { name: p.name, photo: p.photo || '', games: (old.games || 0) + 1, wins: (old.wins || 0) + (win ? 1 : 0), earned: (old.earned || 0) + net, weekKey: k, weekEarned: (same ? old.weekEarned || 0 : 0) + net, weekWins: (same ? old.weekWins || 0 : 0) + (win ? 1 : 0) });
+    });
+    t.set(db.doc('matches/' + id), { room: id, winnerUid: r.players[w].uid, winnerName: r.players[w].name, prize, stake: r.stake, players: r.players.length, finishedAt: FV.serverTimestamp() });
+    t.set(db.doc('platform/stats'), { fees: FV.increment(pool - prize) }, { merge: true });
+    t.update(rr, { status: 'FINISHED', winner: w, prize }); return { ok: true };
+  });
+}
+exports.settleMatch = onCall(async req => { authed(req); return settle(String(req.data.room || '')); });
+exports.sweep = onSchedule('every 1 minutes', async () => {
+  const s = await db.collection('rooms').where('status', '==', 'COUNTDOWN').get();
+  for (const d of s.docs) if (d.data().finishAt < Date.now()) await settle(d.id).catch(e => console.error(d.id, e));
+});
+
+/* ---- Пополнение Telegram Stars (XTR) ---- */
+exports.createInvoice = onCall({ secrets: [BOT] }, async req => {
+  const uid = authed(req), a = req.data.amount; if (!DEPS.includes(a)) fail('invalid-argument', 'Неверная сумма');
+  const j = await fetch(`https://api.telegram.org/bot${BOT.value()}/createInvoiceLink`, { method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ title: 'UPARENA Stars', description: `Пополнение баланса на ${a} Stars`, payload: JSON.stringify({ uid, a }), provider_token: '', currency: 'XTR', prices: [{ label: 'Stars', amount: a }] }) }).then(r => r.json());
+  if (!j.ok) fail('internal', 'Не удалось создать счёт'); return { link: j.result };
+});
+// setWebhook: url=<функция tgWebhook>, secret_token=<WEBHOOK_SECRET>, allowed_updates=["pre_checkout_query","message"]
+exports.tgWebhook = onRequest({ secrets: [BOT, HOOK] }, async (req, res) => {
+  if (req.get('x-telegram-bot-api-secret-token') !== HOOK.value()) return res.status(403).send('forbidden');
+  const u = req.body || {}, api = (m, b) => fetch(`https://api.telegram.org/bot${BOT.value()}/${m}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
+  const parse = s => { try { return JSON.parse(s); } catch (e) { return null; } };
+  try {
+    if (u.pre_checkout_query) {
+      const q = u.pre_checkout_query, p = parse(q.invoice_payload), ok = !!p && q.currency === 'XTR' && DEPS.includes(p.a) && q.total_amount === p.a && p.uid === 'tg' + q.from.id;
+      await api('answerPreCheckoutQuery', { pre_checkout_query_id: q.id, ok, ...(ok ? {} : { error_message: 'Неверный платёж' }) });
+    }
+    const sp = u.message && u.message.successful_payment;
+    if (sp) {
+      const p = parse(sp.invoice_payload);
+      if (p && sp.currency === 'XTR' && DEPS.includes(p.a) && sp.total_amount === p.a && p.uid === 'tg' + u.message.from.id)
+        await db.runTransaction(async t => {
+          const pr = db.doc('payments/' + sp.telegram_payment_charge_id); if ((await t.get(pr)).exists) return; // повторная доставка вебхука
+          t.create(pr, { uid: p.uid, amount: p.a, ts: FV.serverTimestamp() }); t.update(db.doc('users/' + p.uid), { stars: FV.increment(p.a) }); addTx(t, p.uid, 'deposit', p.a);
+        });
+    }
+  } catch (e) { console.error(e); return res.status(500).send('error'); }
+  res.send('ok');
+});
+</script>
+<script type="text/plain" id="src-rules">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+
+    // Баланс и профиль: только владелец читает, писать может лишь сервер (Admin SDK обходит правила)
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+      match /tx/{txId} {
+        allow read: if signedIn() && request.auth.uid == uid;
+        allow write: if false;
+      }
+    }
+
+    // Публичные комнаты видны всем вошедшим, приватные — только участникам.
+    // Запрос в клиенте обязан содержать where('priv','==',false).
+    match /rooms/{roomId} {
+      allow read: if signedIn() && (resource.data.priv == false || request.auth.uid in resource.data.playerUids);
+      allow write: if false;
+      match /secret/{doc} { allow read, write: if false; }
+    }
+
+    match /matches/{id}     { allow read: if signedIn(); allow write: if false; }
+    match /leaderboard/{id} { allow read: if signedIn(); allow write: if false; }
+
+    // Всё остальное (requests, payments, platform) закрыто
+  }
+}
+</script>
+<script type="text/plain" id="src-package">{
+  "name": "uparena-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": "20" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}
+</script>
+<script type="module">
+/* UPARENA — клиент. Все данные читаются из Firestore в реальном времени.
+   Любые изменения баланса, комнат и результатов делает только сервер (Cloud Functions).
+   Клиент отправляет намерения (join / ready / leave) и отображает состояние. */
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import{getAnalytics,isSupported}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+import{getAuth,signInWithCustomToken}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import{getFirestore,doc,collection,query,where,orderBy,limit,onSnapshot}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import{getFunctions,httpsCallable}from"https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+
+const app=initializeApp({apiKey:"AIzaSyC8voWI-GfwAh3Ch6C5btaCS6aFEq6M0S0",authDomain:"va00000.firebaseapp.com",projectId:"va00000",storageBucket:"va00000.firebasestorage.app",messagingSenderId:"56090930424",appId:"1:56090930424:web:19605c8525ed90dd285f0d",measurementId:"G-V9778YLSCQ"});
+isSupported().then(ok=>ok&&getAnalytics(app)).catch(()=>{});
+const auth=getAuth(app),db=getFirestore(app),fns=getFunctions(app);
+const CFG={APP_LINK:'',FEE:.05};
+const tg=window.Telegram&&window.Telegram.WebApp;
+try{tg&&(tg.ready(),tg.expand(),tg.setHeaderColor&&tg.setHeaderColor('#080910'),tg.setBackgroundColor&&tg.setBackgroundColor('#080910'))}catch(e){}
+const COL=['#8B5CF6','#22D3EE','#22C55E','#F59E0B','#F43F5E','#6366F1','#EC4899','#14B8A6','#EAB308','#60A5FA'];
+const STAKES=[10,50,100,250,500,1000],MAXP=[2,4,6,8,10],DEPS=[50,100,250,500,1000],NS='http://www.w3.org/2000/svg';
+const $=(s,e)=>(e||document).querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>(Math.round(n*100)/100).toLocaleString('ru-RU');
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random();
+const call=(n,d)=>httpsCallable(fns,n)({...d,rid:uid()}).then(r=>r.data);
+const ic=(n,s)=>`<svg class="i" ${s?`width="${s}" height="${s}"`:''}><use href="#i-${n}"/></svg>`;
+const M=n=>fmt(n)+'<svg class="i st"><use href="#i-star"/></svg>';
+const hap=k=>{try{tg&&tg.HapticFeedback&&tg.HapticFeedback.impactOccurred(k||'light')}catch(e){}};
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2800)}
+const wk=()=>{const d=new Date();d.setUTCHours(0,0,0,0);d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));const y=d.getUTCFullYear();return y+'-W'+Math.ceil(((d-Date.UTC(y,0,1))/864e5+1)/7)};
+const av=(p,i,sz)=>{sz=sz||34;const c=COL[(i||0)%10],n=(p.name||'?').replace('@','');return`<svg class="av" width="${sz}" height="${sz}" viewBox="0 0 36 36"><rect width="36" height="36" fill="${c}33"/>${p.photo?`<image href="${esc(p.photo)}" width="36" height="36" preserveAspectRatio="xMidYMid slice"/>`:`<text x="18" y="24" text-anchor="middle" font-family="Exo 2,sans-serif" font-weight="800" font-size="16" fill="#fff">${esc(n[0]||'?').toUpperCase()}</text>`}<circle cx="18" cy="18" r="17" fill="none" stroke="${c}" stroke-width="2"/></svg>`};
+
+/* ---------- Детерминированный движок (идентичен серверному) ---------- */
+function mul(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+class Engine{
+  constructor(seed,n){this.rng=mul(seed);this.n=n;this.x=500;this.y=500;this.sp=340;this.tick=0;this.alive=Array(n).fill(true);this.hp=Array(n).fill(3);this.over=false;this.winner=-1;this.ev=[];
+    let a=this.rng()*2-1,b=this.rng()*2-1;if(Math.abs(a)+Math.abs(b)<.3)a=1;this.dir(a,b)}
+  dir(a,b){const l=Math.sqrt(a*a+b*b);this.vx=a/l*this.sp;this.vy=b/l*this.sp}
+  hit(p,x,y){const o=Math.min(this.n-1,Math.floor(p/(4000/this.n)));this.sp=Math.min(1100,this.sp*1.05);const k=(this.rng()-.5)*.14;this.dir(this.vx-k*this.vy,this.vy+k*this.vx);
+    const kill=this.alive[o]&&--this.hp[o]<=0;this.ev.push({x,y,o,p:this.sp/1100,kill});
+    if(kill){this.alive[o]=false;if(this.alive.filter(Boolean).length<=1){this.over=true;this.winner=this.alive.indexOf(true)}}}
+  step(){if(this.over)return;this.tick++;const dt=1/60,r=16,W=1000;this.x+=this.vx*dt;this.y+=this.vy*dt;
+    if(this.y<r){this.y=r;this.vy=Math.abs(this.vy);this.hit(this.x,this.x,0)}
+    if(this.x>W-r){this.x=W-r;this.vx=-Math.abs(this.vx);this.hit(W+this.y,W,this.y)}
+    if(this.y>W-r){this.y=W-r;this.vy=-Math.abs(this.vy);this.hit(2*W+(W-this.x),this.x,W)}
+    if(this.x<r){this.x=r;this.vx=Math.abs(this.vx);this.hit(3*W+(W-this.y),0,this.y)}}
+}
+
+/* ---------- Состояние ---------- */
+const S={ready:false,gate:'',user:null,rooms:[],matches:[],lb:[],lbw:[],tx:[],room:null,rid:null,tab:'home',filter:0,cf:{stake:50,max:4,priv:false},wt:'tx',lbt:'all',dep:100,settleAt:0,ovk:'',done:false};
+let UID=null,OFF=0,busy=false,roomUn=null,unsubs=[],sim=null,A=null,PT=[],SH=0,HIST=[],raf=0;
+const now=()=>Date.now()+OFF,stars=()=>S.user?S.user.stars||0:0;
+const phase=r=>{if(r.status==='COUNTDOWN'){const d=r.startAt-now();return d>3000?'READY':d>0?'COUNT':d>-1400?'GO':'RUNNING'}return r.status};
+const ST={WAITING:['Ожидание',''],READY:['Все готовы','g'],COUNT:['Старт','c'],GO:['Идёт бой','c'],RUNNING:['Идёт бой','c'],FINISHED:['Завершён','g'],CANCELLED:['Отменён','']};
+
+/* ---------- Загрузка ---------- */
+/* Режим #server: показывает серверные файлы, вложенные в этот HTML, с кнопками копирования */
+function serverView(){const F=[['src-functions','functions/index.js'],['src-package','functions/package.json'],['src-rules','firestore.rules']];
+  S.ready=true;$('#nav').style.display='none';$('#bal').style.display='none';
+  $('#view').innerHTML='<section><h3>Серверные файлы</h3><p class="mu">Создайте их в папке проекта Firebase и выполните: firebase deploy --only functions,firestore:rules</p>'+F.map(f=>`<div class="card glass"><div class="row sp"><b>${f[1]}</b><button class="btn sm" data-copy="${f[0]}">Копировать</button></div></div>`).join('')+'</section>';
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;const t=document.getElementById(b.dataset.copy).textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Скопировано'),()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Скопировано')})})}
+async function boot(){
+  if(location.hash==='#server')return serverView();
+  ui();
+  if(!tg||!tg.initData){S.gate='Откройте UPARENA внутри Telegram, чтобы войти и играть.';return ui()}
+  try{const{token}=await call('telegramAuth',{initData:tg.initData});await signInWithCustomToken(auth,token);UID=auth.currentUser.uid;
+    const t0=Date.now(),{t}=await call('serverTime'),t1=Date.now();OFF=t-(t0+t1)/2;listen();S.ready=true;
+    const sp=tg.initDataUnsafe&&tg.initDataUnsafe.start_param;if(sp&&/^[A-Z0-9]{4,12}$/i.test(sp)){S.tab='lobby';S.code=sp.toUpperCase()}ui()
+  }catch(e){S.gate='Не удалось войти: '+(e.message||'ошибка сети');ui()}
+}
+function listen(){
+  const L=(q,key,post)=>onSnapshot(q,s=>{let a=s.docs.map(d=>({id:d.id,...d.data()}));S[key]=post?post(a):a;ui()},e=>console.warn(key,e.code));
+  unsubs=[
+    onSnapshot(doc(db,'users',UID),s=>{S.user=s.data()||null;ui()},e=>console.warn('user',e.code)),
+    L(query(collection(db,'rooms'),where('priv','==',false),where('status','in',['WAITING','COUNTDOWN'])),'rooms'),
+    L(query(collection(db,'matches'),orderBy('finishedAt','desc'),limit(10)),'matches'),
+    L(query(collection(db,'leaderboard'),orderBy('earned','desc'),limit(20)),'lb'),
+    L(query(collection(db,'leaderboard'),where('weekKey','==',wk()),limit(50)),'lbw',a=>a.sort((x,y)=>(y.weekEarned||0)-(x.weekEarned||0))),
+    L(query(collection(db,'users',UID,'tx'),orderBy('ts','desc'),limit(50)),'tx')]
+}
+
+/* ---------- Экраны ---------- */
+const TABS=[['home','home','Главная'],['lobby','grid','Арены'],['create','plus','Создать'],['wallet','wallet','Кошелёк'],['ranks','trophy','Рейтинг'],['profile','user','Профиль']];
+const empty=t=>`<div class="card mu" style="text-align:center">${t}</div>`;
+const when=h=>h.ts&&h.ts.toDate?h.ts.toDate().toLocaleString('ru-RU'):'…';
+const TXN={deposit:'Пополнение',bet:'Ставка',win:'Выигрыш',refund:'Возврат'};
+const txRow=h=>`<div class="li"><div class="gr"><b>${TXN[h.type]||esc(h.type)}${h.room?' · '+esc(h.room):''}</b><small class="mu">${when(h)}</small></div><b class="${h.amount>0?'pos':'neg'}">${h.amount>0?'+':''}${M(h.amount)}</b></div>`;
+const roomCard=r=>{const ph=phase(r),full=r.players.length>=r.max;return`<div class="room glass"><div class="row sp"><b class="fx">${esc(r.id)}</b><span class="badge ${ST[ph][1]}">${ST[ph][0]}</span></div>
+ <div class="row sp"><span class="mu">Создатель: ${esc(r.creator&&r.creator.name)}</span><span class="mu">${r.players.length}/${r.max} игроков</span></div>
+ <div class="row sp"><div><small class="mu">Ставка</small> <b>${M(r.stake)}</b> &nbsp; <small class="mu">Фонд</small> <b class="pos">${M(r.stake*r.players.length)}</b></div><button class="btn sm" data-a="join" data-v="${esc(r.id)}" ${r.status!=='WAITING'||full||stars()<r.stake?'disabled':''}>JOIN</button></div></div>`};
+const VIEWS={
+home(){const act=S.rooms.filter(r=>r.status==='COUNTDOWN'),on=S.rooms.reduce((s,r)=>s+r.players.length,0),pool=S.rooms.reduce((s,r)=>s+r.stake*r.players.length,0);
+ return`<section><div class="hero glass"><span class="mu">Ваш баланс</span><b>${fmt(stars())}<svg class="i st"><use href="#i-star"/></svg></b><button class="btn w" data-a="play" style="font-size:20px;padding:16px">PLAY</button></div>
+ <div class="grid3"><div class="stat glass"><b>${act.length}</b><small>Active Battles</small></div><div class="stat glass"><b>${on}</b><small>Online Players</small></div><div class="stat glass"><b>${M(pool)}</b><small>Prize Pool</small></div></div>
+ <h2>Recent Winners</h2><div class="glass">${S.matches.length?S.matches.slice(0,5).map(m=>`<div class="li"><div class="gr"><b>${esc(m.winnerName)}</b><small class="mu">Арена ${esc(m.room)}</small></div><b class="pos">+${M(m.prize)}</b></div>`).join(''):empty('Завершённых матчей пока нет')}</div>
+ <h2>Последние матчи</h2><div class="glass">${S.matches.length?S.matches.slice(0,5).map(m=>`<div class="li"><div class="gr"><b>Арена ${esc(m.room)}</b><small class="mu">${m.players} игроков · ставка ${M(m.stake)}</small></div></div>`).join(''):empty('Сыграйте первый матч')}</div></section>`},
+lobby(){const rs=S.rooms.filter(r=>r.status==='WAITING'&&(!S.filter||r.stake===S.filter)).sort((a,b)=>(b.createdAt&&b.createdAt.seconds||0)-(a.createdAt&&a.createdAt.seconds||0));
+ return`<section><div class="chips"><button class="chip ${!S.filter?'on':''}" data-a="filter" data-v="0">Все</button>${STAKES.map(s=>`<button class="chip ${S.filter===s?'on':''}" data-a="filter" data-v="${s}">${s}</button>`).join('')}</div>
+ <div class="row"><input id="code" placeholder="Код приватной комнаты" maxlength="12" value="${esc(S.code||'')}"><button class="btn sm" data-a="code">Войти</button></div>
+ ${rs.length?rs.map(roomCard).join(''):empty('Нет открытых арен с такой ставкой. Создайте свою.')}</section>`},
+create(){const c=S.cf;return`<section><h2 style="margin-top:6px">Ставка</h2><div class="chips">${STAKES.map(s=>`<button class="chip ${c.stake===s?'on':''}" data-a="stake" data-v="${s}">${s}</button>`).join('')}</div>
+ <h2>Максимум игроков</h2><div class="chips">${MAXP.map(s=>`<button class="chip ${c.max===s?'on':''}" data-a="max" data-v="${s}">${s}</button>`).join('')}</div>
+ <h2>Доступ</h2><div class="chips"><button class="chip ${!c.priv?'on':''}" data-a="priv" data-v="0">Публичная</button><button class="chip ${c.priv?'on':''}" data-a="priv" data-v="1">Приватная</button></div>
+ <div class="card glass"><div class="row sp"><span class="mu">Призовой фонд</span><b class="pos">${M(Math.floor(c.stake*c.max*(1-CFG.FEE)))}</b></div><div class="row sp mu" style="margin-top:6px"><span>Комиссия ${CFG.FEE*100}%</span><span>Победитель получает всё</span></div></div>
+ <button class="btn w" data-a="create" ${stars()<c.stake?'disabled':''}>CREATE ARENA</button>${stars()<c.stake?'<p class="mu" style="text-align:center">Недостаточно звёзд — пополните баланс в кошельке</p>':''}</section>`},
+wallet(){const L=S.wt==='bets'?S.tx.filter(h=>h.type==='bet'):S.wt==='wins'?S.tx.filter(h=>h.type==='win'):S.tx;
+ return`<section><div class="card glass"><span class="mu">Баланс в Telegram Stars</span><div class="fx" style="font-size:32px;font-weight:800;margin:4px 0 12px">${M(stars())}</div>
+ <div class="chips">${DEPS.map(s=>`<button class="chip ${S.dep===s?'on':''}" data-a="dep" data-v="${s}">${s}</button>`).join('')}</div>
+ <button class="btn w" style="margin-top:10px" data-a="deposit">Пополнить на ${S.dep} Stars</button></div>
+ <div class="chips">${[['tx','Транзакции'],['bets','Ставки'],['wins','Выигрыши']].map(t=>`<button class="chip ${S.wt===t[0]?'on':''}" data-a="wtab" data-v="${t[0]}">${t[1]}</button>`).join('')}</div>
+ <div class="glass">${L.length?L.map(txRow).join(''):empty('Записей пока нет')}</div></section>`},
+ranks(){const rows=S.lbt==='weekly'?S.lbw:S.lb,E=r=>S.lbt==='weekly'?r.weekEarned||0:r.earned||0,Wn=r=>S.lbt==='weekly'?r.weekWins||0:r.wins||0;
+ return`<section><div class="chips"><button class="chip ${S.lbt==='all'?'on':''}" data-a="lbt" data-v="all">Все время</button><button class="chip ${S.lbt==='weekly'?'on':''}" data-a="lbt" data-v="weekly">Неделя</button></div>
+ <div class="glass">${rows.length?rows.map((r,i)=>`<div class="li" ${r.id===UID?'style="background:rgba(139,92,246,.15)"':''}><b class="fx" style="width:22px">${i+1}</b>${av(r,i)}<div class="gr"><b>${esc(r.name)}</b><small class="mu">Wins ${Wn(r)} · Win Rate ${r.games?Math.round((r.wins||0)/r.games*100):0}%</small></div><b class="${E(r)>=0?'pos':'neg'}">${M(E(r))}</b></div>`).join(''):empty('В рейтинге пока никого нет')}</div></section>`},
+profile(){const u=S.user||{},wr=u.games?Math.round((u.wins||0)/u.games*100):0;
+ return`<section><div class="card glass row">${av(u,0,64)}<div><h3 style="font-size:18px">${esc(u.name)}</h3><span class="mu">ID ${esc(UID)}</span></div></div>
+ <div class="grid3"><div class="stat glass"><b>${u.games||0}</b><small>Games Played</small></div><div class="stat glass"><b>${u.wins||0}</b><small>Wins</small></div><div class="stat glass"><b>${u.losses||0}</b><small>Losses</small></div></div>
+ <div class="grid3" style="grid-template-columns:1fr 1fr"><div class="stat glass"><b>${wr}%</b><small>Win Rate</small></div><div class="stat glass"><b class="${(u.earned||0)>=0?'pos':'neg'}">${M(u.earned||0)}</b><small>Total Earnings</small></div></div></section>`}
+};
+function ui(){
+  $('#bal').innerHTML=S.ready?M(stars()):'';$('#bal').style.display=S.ready?'':'none';
+  $('#nav').style.display=S.ready?'':'none';
+  $('#nav').innerHTML=TABS.map(t=>`<button data-a="tab" data-v="${t[0]}" class="${S.tab===t[0]?'on':''}">${ic(t[1])}${t[2]}</button>`).join('');
+  if(!S.ready){$('#view').innerHTML=`<div class="gate">${ic('bolt',44)}<h3>${S.gate?'UPARENA':'Загрузка…'}</h3><p class="mu">${esc(S.gate)}</p></div>`;return}
+  if(!document.activeElement||!document.activeElement.closest('#view input'))$('#view').innerHTML=VIEWS[S.tab]();
+  if(S.rid&&S.room)upBattle()}
+
+/* ---------- Арена (SVG) ---------- */
+function pt(p){const W=1000,i=8,c=v=>Math.min(W-i,Math.max(i,v));p=((p%4000)+4000)%4000;return p<W?[c(p),i]:p<2*W?[W-i,c(p-W)]:p<3*W?[c(W-(p-2*W)),W-i]:[i,c(W-(p-3*W))]}
+function segD(i,L){const a=i*L,b=(i+1)*L,P=[pt(a)];for(let k=1;k<4;k++)if(k*1000>a&&k*1000<b)P.push(pt(k*1000));P.push(pt(b-.01));return P.map((q,j)=>(j?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join('')}
+function arenaSvg(n){const L=4000/n;let sg='',tr='',gr='';for(let i=0;i<n;i++)sg+=`<path d="${segD(i,L)}" fill="none" stroke="${COL[i%10]}" stroke-width="14"/>`;
+  for(let j=0;j<18;j++)tr+=`<circle r="${(3+j*.8).toFixed(1)}" cx="500" cy="500" fill="#22D3EE" opacity="${(j/18*.35).toFixed(2)}"/>`;for(let i=1;i<10;i++)gr+=`M${i*100} 0V1000M0 ${i*100}H1000`;
+  return`<svg id="arena" viewBox="0 0 1000 1000" role="img" aria-label="Игровая арена"><defs><radialGradient id="hg"><stop offset="0" stop-color="#fff"/><stop offset=".25" stop-color="#22D3EE" stop-opacity=".9"/><stop offset=".6" stop-color="#8B5CF6" stop-opacity=".35"/><stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/></radialGradient><filter id="gl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g id="world"><rect width="1000" height="1000" fill="#0b0c18"/><path d="${gr}" stroke="rgba(255,255,255,.05)" stroke-width="1.5" fill="none"/><g id="segs" filter="url(#gl)">${sg}</g><g id="trail">${tr}</g><g id="fxg"></g><circle id="halo" r="62" cx="500" cy="500" fill="url(#hg)"/><circle id="core" r="13" cx="500" cy="500" fill="#fff"/></g></svg>`}
+function fxBurst(e){if(!A)return;const n=10+Math.round(e.p*24);for(let i=0;i<n&&PT.length<220;i++){const a=Math.random()*6.283,s=2+Math.random()*(4+e.p*8),c=document.createElementNS(NS,'circle');c.setAttribute('fill',Math.random()<.5?COL[e.o%10]:'#fff');A.fx.appendChild(c);PT.push({c,x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,r:3+Math.random()*5})}
+  if(e.p>.45||e.kill){SH=Math.max(SH,6+e.p*10);hap(e.kill?'heavy':'light')}}
+function confetti(){if(!A)return;for(let i=0;i<90&&PT.length<260;i++){const c=document.createElementNS(NS,'circle');c.setAttribute('fill',COL[i%10]);A.fx.appendChild(c);PT.push({c,x:Math.random()*1000,y:-20,vx:(Math.random()-.5)*3,vy:2+Math.random()*7,l:2.2,r:4+Math.random()*5})}}
+function frame(){
+  if(!S.rid)return;raf=requestAnimationFrame(frame);const r=S.room;if(!r||!A)return;let x=500,y=500,al=null;
+  if(r.seed){if(!sim||sim.seed!==r.seed)sim={seed:r.seed,eng:new Engine(r.seed,r.max),px:500,py:500};
+    const e=sim.eng,target=r.status==='FINISHED'?1e9:Math.floor((now()-r.startAt)*.06),lag=target-e.tick;let k=0;
+    while(e.tick<target&&!e.over&&k++<20000){sim.px=e.x;sim.py=e.y;e.step();const ev=e.ev.splice(0);if(lag<30)ev.forEach(fxBurst)}
+    const f=e.over?1:Math.max(0,Math.min(1,(now()-r.startAt)*.06-e.tick));x=sim.px+(e.x-sim.px)*f;y=sim.py+(e.y-sim.py)*f;al=e.alive;
+    if(now()<r.startAt){x=500;y=500}}
+  else{const p=Math.sin(performance.now()/300)*4;A.halo.setAttribute('r',62+p)}
+  HIST.push([x,y]);if(HIST.length>18)HIST.shift();
+  A.trail.forEach((c,j)=>{const h=HIST[HIST.length-18+j]||HIST[0];c.setAttribute('cx',h[0]);c.setAttribute('cy',h[1])});
+  A.halo.setAttribute('cx',x);A.halo.setAttribute('cy',y);A.core.setAttribute('cx',x);A.core.setAttribute('cy',y);
+  if(al){const k=al.join();if(k!==A.ak){A.ak=k;A.segs.forEach((s,i)=>{s.setAttribute('stroke',al[i]?COL[i%10]:'#2a2c3e');s.setAttribute('opacity',al[i]?1:.7)})}}
+  for(let i=PT.length-1;i>=0;i--){const p=PT[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;p.l-=.025;if(p.l<=0){p.c.remove();PT.splice(i,1);continue}p.c.setAttribute('cx',p.x);p.c.setAttribute('cy',p.y);p.c.setAttribute('r',p.r*Math.min(1,p.l)+1);p.c.setAttribute('opacity',Math.min(1,p.l))}
+  if(SH>.3){A.world.setAttribute('transform',`translate(${((Math.random()-.5)*SH).toFixed(1)} ${((Math.random()-.5)*SH).toFixed(1)})`);SH*=.88}else if(SH){SH=0;A.world.removeAttribute('transform')}
+  const ph=phase(r),key=ph+(ph==='COUNT'?Math.ceil((r.startAt-now())/1000):'')+r.status+r.players.length;if(key!==S.ovk)upBattle();
+  if(r.status==='COUNTDOWN'&&r.finishAt&&now()>r.finishAt+300&&now()>S.settleAt){S.settleAt=now()+4000;call('settleMatch',{room:r.id}).catch(()=>{})}
+}
+function openBattle(id){if(roomUn)roomUn();S.rid=id;S.room=null;S.done=false;sim=null;A=null;PT=[];HIST=[];$('#battle').hidden=false;$('#battle').innerHTML='';
+  roomUn=onSnapshot(doc(db,'rooms',id),s=>{if(!s.exists()||S.rid!==id){return closeBattle()}const r={id:s.id,...s.data()};const first=!S.room;S.room=r;
+    if(first||!A){buildBattle(r);cancelAnimationFrame(raf);frame()}else upBattle();
+    if(r.status==='FINISHED'&&!S.done){S.done=true;const w=r.players[r.winner];if(w&&w.uid===UID){confetti();hap('heavy')}}
+    if(r.status==='CANCELLED')closeBattle()},e=>{toast('Нет доступа к комнате');closeBattle()})}
+function buildBattle(r){const b=$('#battle');
+  b.innerHTML=`<div class="bh"><button class="ic" data-a="back" aria-label="Назад">${ic('back')}</button><div><h3>Арена ${esc(r.id)}</h3><small class="mu" id="bs"></small></div><button class="ic" data-a="invite" aria-label="Пригласить">${ic('share')}</button></div>
+  <div class="cvw glass">${arenaSvg(r.max)}<div id="ov"></div></div><div class="glass card row sp"><span class="mu">Призовой фонд</span><b class="pos" id="pp"></b></div><div class="glass" id="pl"></div><div id="ctl" class="row"></div>`;
+  const q=s=>$(s,b);A={world:q('#world'),halo:q('#halo'),core:q('#core'),fx:q('#fxg'),trail:[...q('#trail').children],segs:[...q('#segs').children],ak:''};upBattle()}
+function upBattle(){const r=S.room;if(!r||!A)return;const ph=phase(r),mine=r.players.find(p=>p.uid===UID),al=sim&&sim.eng.alive,run=ph==='GO'||ph==='RUNNING'||r.status==='FINISHED';
+  $('#bs').textContent=`${ST[ph][0]} · ${r.players.length}/${r.max} · ставка ${fmt(r.stake)} Stars`;$('#pp').innerHTML=M(Math.floor(r.stake*r.max*(1-CFG.FEE)));
+  $('#pl').innerHTML=Array.from({length:r.max},(_,i)=>{const p=r.players[i];if(!p)return`<div class="li mu">${av({name:'?'},i)}Ждём игрока…</div>`;const dead=run&&al&&al[i]===false;
+    return`<div class="li ${dead?'dead':''}">${av(p,i)}<div class="gr"><b>${esc(p.name)}</b><small class="mu">ID ${esc(p.uid)}</small></div>${r.status==='FINISHED'&&r.winner===i?'<span class="badge g">Победитель</span>':dead?'<span class="badge">Выбыл</span>':`<span class="badge ${p.ready?'g':''}">${p.ready?'Ready':'Не готов'}</span>`}</div>`}).join('');
+  let ov='',cnt=ph==='COUNT'?Math.ceil((r.startAt-now())/1000):'';
+  if(ph==='WAITING')ov=`<div class="t">Ожидание игроков ${r.players.length}/${r.max}</div>`;else if(ph==='READY')ov='<div class="t">Все готовы</div>';else if(ph==='COUNT')ov=`<div class="n">${cnt}</div>`;else if(ph==='GO')ov='<div class="t">Матч начался</div>';
+  else if(ph==='FINISHED'){const w=r.players[r.winner],you=w&&w.uid===UID;ov=`<div class="w"><div class="mu">Победитель</div><h3 style="font-size:24px;margin:4px 0">${w?esc(w.name):'—'}</h3><b class="${you?'pos':'mu'}">${you?'+'+M(r.prize):'Вы проиграли'}</b></div>`}
+  $('#ov').innerHTML=ov;S.ovk=ph+cnt+r.status+r.players.length;
+  $('#ctl').innerHTML=ph==='FINISHED'?'<button class="btn w" data-a="again">Играть снова</button>':ph==='WAITING'?`<button class="btn ${mine&&mine.ready?'gh':'ok'}" style="flex:2" data-a="ready">${mine&&mine.ready?'Отменить готовность':'READY'}</button><button class="btn gh" style="flex:1" data-a="leave">Выйти</button>`:''}
+function closeBattle(){if(roomUn)roomUn();roomUn=null;cancelAnimationFrame(raf);S.rid=null;S.room=null;sim=null;A=null;$('#battle').hidden=true;$('#battle').innerHTML='';ui()}
+
+/* ---------- Действия ---------- */
+async function run(f){if(busy)return;busy=true;try{await f()}catch(e){toast((e&&e.message)||'Ошибка')}finally{busy=false}}
+const joinRoom=v=>run(async()=>{const r=await call('joinRoom',{room:v});hap('medium');openBattle(r.id)});
+function act(a,d){const v=d.v;hap();
+  switch(a){
+  case'tab':S.tab=v;$('#view').scrollTop=0;ui();break;
+  case'filter':S.filter=+v;ui();break;case'stake':S.cf.stake=+v;ui();break;case'max':S.cf.max=+v;ui();break;case'priv':S.cf.priv=v==='1';ui();break;
+  case'wtab':S.wt=v;ui();break;case'lbt':S.lbt=v;ui();break;case'dep':S.dep=+v;ui();break;
+  case'play':{const r=S.rooms.find(r=>r.status==='WAITING'&&r.players.length<r.max&&r.stake<=stars()&&!r.players.some(p=>p.uid===UID));if(r)joinRoom(r.id);else{S.tab='create';ui();toast('Подходящих арен нет — создайте свою')}break}
+  case'join':joinRoom(v);break;
+  case'code':{const c=($('#code').value||'').trim().toUpperCase();c?joinRoom(c):toast('Введите код комнаты');break}
+  case'create':run(async()=>{const r=await call('createRoom',S.cf);openBattle(r.id)});break;
+  case'deposit':run(async()=>{const{link}=await call('createInvoice',{amount:S.dep});if(!tg||!tg.openInvoice)return toast('Оплата доступна только в Telegram');
+    tg.openInvoice(link,st=>toast(st==='paid'?'Оплачено — баланс обновится через несколько секунд':st==='cancelled'?'Платёж отменён':st==='failed'?'Ошибка оплаты':'Ожидание оплаты'))});break;
+  case'ready':{const m=S.room.players.find(p=>p.uid===UID);run(()=>call('setReady',{room:S.rid,ready:!(m&&m.ready)}));break}
+  case'leave':run(async()=>{await call('leaveRoom',{room:S.rid});closeBattle()});break;
+  case'back':{const ph=phase(S.room||{status:'FINISHED'});if(ph==='WAITING')act('leave',d);else if(['COUNT','GO','RUNNING','READY'].includes(ph))toast('Матч уже начался');else closeBattle();break}
+  case'again':closeBattle();S.tab='lobby';ui();break;
+  case'invite':{const id=S.rid;if(tg&&CFG.APP_LINK)tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(CFG.APP_LINK+'?startapp='+id)+'&text='+encodeURIComponent('Заходи на арену UPARENA'));else{navigator.clipboard&&navigator.clipboard.writeText(id);toast('Код комнаты скопирован: '+id)}break}
+  }}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(t)act(t.dataset.a,t.dataset)});
+boot();
+</script>
+</body>
+</html>
