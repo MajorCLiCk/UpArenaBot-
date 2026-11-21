@@ -456,32 +456,36 @@ service cloud.firestore {
 }
 </script>
 <script type="text/plain" id="src-fix"># Если вход даёт «internal» — выполняйте в Google Cloud Shell (проект va00000)
+# Имя функции в Google Cloud — строчными буквами: telegramauth
 
-# 0. Посмотреть настоящую причину в журнале (последние ошибки функции входа)
+# 0. Настоящая причина в журнале (последние ошибки функции входа)
 gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="telegramauth" AND severity>=ERROR' \
   --project va00000 --limit 5 --format="value(timestamp,textPayload,jsonPayload.message)"
-#   "[telegramAuth:token]"  -> шаги 1-2 (права на подпись токена)
+#   "[telegramAuth:token]"  -> шаги 3-4 (права на подпись токена)
 #   "[telegramAuth:db]"     -> не создана база Firestore или нет прав
-#   нет строк / "Container failed to start" / "runtime" -> шаг 3 (устаревший Node)
-#   старый текст без этих меток -> на сервере всё ещё старый functions/index.js, нужен деплой
+#   нет строк / "Container failed to start" / про runtime или service account -> шаги 1, 2, 5
+#   старый текст без этих меток -> на сервере всё ещё старый functions/index.js, нужен деплой (шаг 5)
 
-# 1. Включить API подписи токенов
+# 1. Под каким аккаунтом и на каком рантайме работает функция, и какие аккаунты вообще есть
+gcloud run services list --project va00000 --format="table(metadata.name,spec.template.spec.serviceAccountName)"
+gcloud functions describe telegramauth --gen2 --region us-central1 --project va00000 --format="value(buildConfig.runtime,state)"
+gcloud iam service-accounts list --project va00000 --format="value(email)"
+#    Рантайм должен быть nodejs22 (Node 20 снят с поддержки 30.10.2026).
+#    Если в firebase.json есть "functions": { "runtime": "nodejs20" } — замените на nodejs22.
+
+# 2. Нет стандартного аккаунта ...-compute@developer.gserviceaccount.com
+#    (ошибка "Service account ... does not exist")? Он создаётся при включении Compute Engine API:
+gcloud services enable compute.googleapis.com --project va00000
+
+# 3. Включить API подписи токенов
 gcloud services enable iamcredentials.googleapis.com --project va00000
 
-# 2. Выдать сервисному аккаунту функций право подписывать токены входа
-#    (по умолчанию это 56090930424-compute@developer.gserviceaccount.com)
-gcloud projects add-iam-policy-binding va00000 \
-  --member="serviceAccount:56090930424-compute@developer.gserviceaccount.com" \
-  --role="roles/iam.serviceAccountTokenCreator"
+# 4. Выдать право подписывать токены входа тому аккаунту, под которым работает функция (подставится сам)
+SA=$(gcloud run services describe telegramauth --region us-central1 --project va00000 --format="value(spec.template.spec.serviceAccountName)")
+echo "Функция работает под: $SA"
+gcloud projects add-iam-policy-binding va00000 --member="serviceAccount:$SA" --role="roles/iam.serviceAccountTokenCreator" --condition=None
 
-# 3. Проверить рантайм и аккаунт, под которым реально работает функция
-gcloud functions describe telegramAuth --gen2 --region us-central1 --project va00000 \
-  --format="value(buildConfig.runtime,serviceConfig.serviceAccountEmail,state)"
-#    Рантайм должен быть nodejs22 (Node 20 снят с поддержки 30.10.2026).
-#    Если в firebase.json есть "functions": { "runtime": "nodejs20" } — замените на nodejs22,
-#    иначе он перекрывает engines из package.json.
-
-# 4. Передеплой (из папки проекта Firebase)
+# 5. Передеплой (из папки проекта Firebase)
 firebase deploy --only functions,firestore:rules,firestore:indexes
 </script>
 <script type="module">
