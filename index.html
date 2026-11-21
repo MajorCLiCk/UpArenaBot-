@@ -455,7 +455,15 @@ service cloud.firestore {
   "fieldOverrides": []
 }
 </script>
-<script type="text/plain" id="src-fix"># Если вход даёт «internal» — выполните в Google Cloud Shell (проект va00000)
+<script type="text/plain" id="src-fix"># Если вход даёт «internal» — выполняйте в Google Cloud Shell (проект va00000)
+
+# 0. Посмотреть настоящую причину в журнале (последние ошибки функции входа)
+gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="telegramauth" AND severity>=ERROR' \
+  --project va00000 --limit 5 --format="value(timestamp,textPayload,jsonPayload.message)"
+#   "[telegramAuth:token]"  -> шаги 1-2 (права на подпись токена)
+#   "[telegramAuth:db]"     -> не создана база Firestore или нет прав
+#   нет строк / "Container failed to start" / "runtime" -> шаг 3 (устаревший Node)
+#   старый текст без этих меток -> на сервере всё ещё старый functions/index.js, нужен деплой
 
 # 1. Включить API подписи токенов
 gcloud services enable iamcredentials.googleapis.com --project va00000
@@ -466,15 +474,15 @@ gcloud projects add-iam-policy-binding va00000 \
   --member="serviceAccount:56090930424-compute@developer.gserviceaccount.com" \
   --role="roles/iam.serviceAccountTokenCreator"
 
-# 3. Проверить, под каким аккаунтом реально работает функция
+# 3. Проверить рантайм и аккаунт, под которым реально работает функция
 gcloud functions describe telegramAuth --gen2 --region us-central1 --project va00000 \
-  --format="value(serviceConfig.serviceAccountEmail,serviceConfig.runtime)"
+  --format="value(buildConfig.runtime,serviceConfig.serviceAccountEmail,state)"
+#    Рантайм должен быть nodejs22 (Node 20 снят с поддержки 30.10.2026).
+#    Если в firebase.json есть "functions": { "runtime": "nodejs20" } — замените на nodejs22,
+#    иначе он перекрывает engines из package.json.
 
-# Рантайм должен быть nodejs22 (Node 20 снят с поддержки 30.10.2026). Передеплой:
+# 4. Передеплой (из папки проекта Firebase)
 firebase deploy --only functions,firestore:rules,firestore:indexes
-
-# Причина ошибки видна в журнале: Firebase Console -> Functions -> Журналы -> telegramAuth
-# ([telegramAuth:token] — права на подпись токена, [telegramAuth:db] — база данных)
 </script>
 <script type="module">
 /* UPARENA — клиент (Telegram Mini App). Все данные читаются из Firestore в реальном времени.
